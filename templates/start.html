@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+        <nav class="navbar navbar-light bg-success p-2 text-white bg-opacity-75 ">
+            <div class="container-fluid">
+                <p class="fs-2"><strong style="margin: 0 100px;">開始測驗</strong></p>
+            </div>
+        </nav>
+        <style>
+            #countdown{
+                resize: none;
+                height: 60px;
+            }
+            .correct{
+                font-size: 30px;
+                float: left;
+                color: LimeGreen;
+            }
+            .error{
+                font-size: 30px;
+                float: left;
+                color: Crimson;
+            }
+            .remain_char{
+                font-size: 30px;
+                float: left;
+            }
+            .line{
+                float: left;
+                width: 100%;
+            }
+            #userinput{
+                font-size: 20px;
+            }
+        </style>
+    </head>
+    <div class="container">
+    <body>
+        <form name="form1" action="/score" method="POST">
+            <!-- 攜帶隱參數 -->
+            <input name="word" type="hidden" value="{{word}}"></input>
+            <input name="settime" type="hidden" value="{{time}}"></input>
+            
+            <body>
+                <p class="fs-3">倒數時間:</p>
+                <textarea id="countdown" style="text-align:center;" class="fs-2" name="clocktime" readonly></textarea>
+            </body> 
+
+            <div class="form-group">
+                <label for="exampleFormControlTextarea1" style="font-size: 20px; padding: 10px 0px">文章 : </label>
+                <div id = "text">
+                </div>
+            </div>
+    
+            <div class="form-group">
+                <label for="exampleFormControlTextarea1" style="font-size: 20px;">輸入區域 : </label>
+                <div id = "alert" style="height: 20px; color: red; margin: 10px 0; visibility: hidden;">請輸入英文、數字或標點符號！</div>
+                <input type="hidden" id = "alreadyinput" name = "alreadyinput" value = "">
+                <textarea class="form-control" type = "text" rows="10" id = "userinput" name="enterTextarea" onpaste="return false"></textarea>
+            </div>
+        </form> 
+        <div class="d-grid gap-2">
+            <button id = "submit" class="btn btn-primary" type="submit" style="font-size: 20px; margin: 20px 0px;">確認送出</button>
+        </div>
+    </body>
+    </div>
+</html>
+
+<script>
+    var article = "{{word}}";
+    var check = document.getElementById('check');
+    var inputchar, error, charnumber, linecount, linecharcount, prechar;
+
+    var text = document.getElementById('text');
+
+    linecount = 0;
+    linecharcount = 0;
+    error = 0;
+    prechar = "";
+
+    function cutString(str){ //處理文章，將文章各行分割
+        linestr = 85;
+        cutstr = article;
+        eachline = [];
+        
+        while(cutstr.length >= linestr){
+            charcount = cutstr.lastIndexOf(" ",linestr);
+            
+            line = cutstr.substr(0,charcount + 1);
+            eachline.push(line);
+            
+            cutstr = cutstr.replace(line,"");
+        }
+        eachline.push(cutstr);
+        return eachline;
+    }
+
+    function createline(eachline){ //將分割好的字串一一顯示
+        for(i = 0; i<eachline.length; i++){
+            var div = document.createElement("div");
+            div.setAttribute("id", "line_" + (i+1));
+            div.setAttribute("class", "line");
+            text.appendChild(div);
+            
+            var line = document.getElementById("line_" + (i+1));
+            var div_che = document.createElement("div");
+            div_che.setAttribute("class", "checked_char");
+
+            var div_rem = document.createElement("div");
+            div_rem.setAttribute("class", "remain_char");
+            div_rem.innerHTML = eachline[i];
+
+            line.appendChild(div_che);
+            line.appendChild(div_rem);
+        }
+    }
+    createline(cutString(article));
+
+    var parent = document.getElementsByClassName("checked_char");
+    var remainChar = document.getElementsByClassName("remain_char");
+    var userinput = document.getElementById('userinput');
+    var allline = document.getElementsByClassName('line');
+    var alreadyinput = document.getElementById('alreadyinput');
+    var alert = document.getElementById('alert');
+
+    var countdownnumber="{{time}}"/1000;
+    var countdownid,x;
+    var start = false;
+
+    x=document.getElementById("countdown");
+    x.innerHTML=(countdownnumber)+"秒";
+
+    var eng = /[^a-zA-Z0-9.,!?' ]/g;
+
+    userinput.addEventListener("keydown", function(e){ //用Listener偵測使用者輸入，若輸入不是英文、數字、標點符號，則刪除使用者輸入的字元
+        if(eng.test(userinput.value)){
+            userinput.value = userinput.value.replace(eng,'');
+            alert.style.visibility = "visible";
+        }
+        else{
+            alert.style.visibility = "hidden";
+        }
+    });
+
+    userinput.addEventListener("input", function(e){ //偵測input文字，當輸入第一個字元時開始計時，每行分開處理，上一行處理完才換下一行，各行處理完後將背景改為灰色，判斷輸入字串是否正確，正確則新增綠色字元，錯誤則為紅色
+        if(!start){
+            initial();
+            start = true;
+        }
+        inputchar = e.target.value;
+        list = parent[linecount].children;
+        if(inputchar.length < prechar.length - 1 || inputchar.length > prechar.length + 1 ){
+            userinput.value = prechar;
+        }else if(inputchar.length == prechar.length){
+        }else{
+            if(inputchar.length < prechar.length){
+                parent[linecount].removeChild(list[list.length - 1]);
+            }else{
+                lastchar = inputchar[inputchar.length - 1];
+                correctchar = eachline[linecount][inputchar.length - 1];
+
+                var div = document.createElement("div");
+                if(correctchar == lastchar){
+                    div.setAttribute("class", "correct");
+                }else{
+                    div.setAttribute("class", "error");
+                    error += 1;
+                }
+                if(eachline[linecount][inputchar.length - 1] == " "){
+                    div.innerHTML = "&nbsp";
+                }else{
+                    div.innerHTML = eachline[linecount][inputchar.length -1];
+                }
+                parent[linecount].appendChild(div);
+            }
+            if(eachline[linecount].substr(inputchar.length, eachline[linecount].length)[0] == " "){
+                remainChar[linecount].style = "padding-left: 7px";
+            }else{
+                remainChar[linecount].style = "padding-left: 0px";
+            }
+            remainChar[linecount].innerHTML = eachline[linecount].substr(inputchar.length, eachline[linecount].length);
+            if(inputchar.length >= eachline[linecount].length){
+                alreadyinput.value += userinput.value;
+                linecount += 1;
+                userinput.value = "";
+                prechar = "";
+                allline[linecount-1].style.background = 'Gainsboro';
+                if(linecount == (eachline.length)){
+                    document.form1.submit();
+                }
+            }else{
+                prechar = inputchar;
+            }
+        }
+    });
+    var submit = document.getElementById('submit');
+    
+    submit.addEventListener('click', function(e){ //若時間未結束，按確認按鈕則提早結束
+        alreadyinput.value += userinput.value;
+        document.form1.submit();
+    });
+
+    function initial(){ //開始計時，每一秒執行一次countdownfunc function
+        countdownid=window.setInterval(countdownfunc,1000);
+    }
+    function countdownfunc(){ //倒數函數，若時間為0，則結束測試
+        x.innerHTML=(countdownnumber)+"秒";
+        if (countdownnumber==0){
+            alreadyinput.value += userinput.value;
+            document.form1.submit();
+            clearInterval(countdownid);
+        }
+        countdownnumber--;
+    }
+</script>

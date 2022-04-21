@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+        <nav class="navbar navbar-light bg-success p-2 text-white bg-opacity-75 ">
+            <div class="container-fluid">
+                <p class="fs-2" style="width: 100%;"><strong style="margin: 0 100px;">測驗設定</strong></p>
+            </div>
+          </nav>
+    </head>
+    <body>   
+        <div class="container">
+            <p class="fs-3"></p>
+            <p class="fs-5 bg-success p-2 text-dark bg-opacity-25">
+              測驗說明：<br>
+              禁止輸入中文<br> 
+              每行最後一字按 Space 鍵進行換行<br> 
+              每行輸入完成後不可再更改<br> 
+              輸入時自動開始計時<br> 
+              若想要取得較為準確的測驗結果，建議選擇較長的測驗時間    
+            </p>
+    <form action='/start' method='POST'>
+        <label for="exampleDataList" class="fs-5">請選擇測驗文章：</label>
+        <select class="form-control" list="articlelistOptions" id="articleDataList" placeholder="請選擇" name="articleDataList">
+            <option>隨機文章</option>
+            <option>A PIGEON</option>
+            <option>The Raven and the Swan</option>
+            <option>The Bat and the Weasels</option>
+            <option>The Ass and the Grasshopper</option>
+            <option>The Dog and the Shadow</option>
+            <option>Apple</option>
+            <option>A bird in a dunghill</option>
+            <option>The lion in love</option>
+            <option>Hercules and Pallas</option>
+            <option>The hare and the tortoise</option>
+        </select>
+        
+        <label for="exampleDataList" class="fs-5">請選擇測驗時間：</label>
+        <select class="form-control" list="timelistOptions" id="timeDataList" placeholder="請選擇" name="timeDataList">
+            <option>30秒</option>
+            <option>1分鐘</option>
+            <option>5分鐘</option>
+        </select>
+        
+        <div class="d-grid gap-2" style="margin-top: 20px;">
+            <button class="btn btn-primary" type="submit">開始測驗</button>
+        </div>
+    </form>
+    <h3 style="text-align:center; margin-top: 20px;">排行榜</h3>
+    <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">暱稱</th>
+            <th scope="col">堅持時間</th>
+            <th scope="col">精準度</th>
+          </tr>
+          
+        </thead>
+        <tbody>
+          <!-- 排行榜迴圈 -->
+          {% for leadboard in all_leadboardlist %}
+            <tr>
+              <th scope="row">{{loop.index}}</th>
+              <td>{{leadboard.name}}</td>
+              <td>{{leadboard.usedtime}}</td>
+              <td>{{leadboard.correct_percent}}</td>
+            </tr>
+          {% endfor%}
+        </tbody>
+      </table>
+        
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+    </div>
+    </body>
+</html>
